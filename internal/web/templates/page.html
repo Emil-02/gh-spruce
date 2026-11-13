@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+{{- if .Report}}
+<title>{{.User}} · repo health {{.Report.Score}}/100 ({{.Report.Grade}}) · gh-spruce</title>
+<meta name="description" content="{{.User}}'s GitHub repositories scored {{.Report.Score}}/100 ({{.Report.Grade}}) by gh-spruce. See what to fix and get a health card for your profile.">
+{{- else}}
+<title>{{.User}} · gh-spruce</title>
+{{- end}}
+<meta property="og:title" content="{{.User}}'s GitHub repo health · gh-spruce">
+<meta property="og:description" content="Audit every repository, get a 0–100 score and fix it with one command.">
+<meta property="og:image" content="{{.Base}}/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<header class="nav">
+  <a class="brand" href="/">🌲 gh-spruce</a>
+  <form class="search" action="/go" method="get" onsubmit="event.preventDefault();var u=this.u.value.trim().replace(/^@/,'');if(u)location.href='/u/'+encodeURIComponent(u)">
+    <input name="u" placeholder="GitHub username" aria-label="GitHub username" autocomplete="off" spellcheck="false">
+  </form>
+  <a class="gh" href="https://github.com/Emil-02/gh-spruce">★ Star on GitHub</a>
+</header>
+<main class="wrap">
+{{- if .Error}}
+  <section class="empty">
+    <h1>{{if eq .Status 404}}User not found{{else}}Something went wrong{{end}}</h1>
+    <p><code>{{.User}}</code>: {{.Error}}.</p>
+    <p><a class="btn" href="/">Try another username</a></p>
+  </section>
+{{- else}}
+{{- $r := .Report}}
+  <section class="hero">
+    <img class="avatar" src="https://github.com/{{.User}}.png?size=160" alt="" width="80" height="80">
+    <div class="who">
+      <h1>{{if $r.Profile.Name}}{{$r.Profile.Name}} <span class="muted">@{{.User}}</span>{{else}}@{{.User}}{{end}}</h1>
+      <p class="muted">{{public $r}} public repositories scanned · <a href="https://github.com/{{.User}}">github.com/{{.User}}</a></p>
+    </div>
+    <div class="score {{tone $r.Score}}"><b>{{$r.Grade}}</b><span>{{$r.Score}}/100</span></div>
+  </section>
+
+  {{- if partial $r}}
+  <p class="note">The web scan reads public repositories and their top two directory levels. For a complete audit including private repositories, run <code>gh spruce audit</code>.</p>
+  {{- end}}
+
+  <section class="grid">
+    <div class="panel">
+      <h2>Share your card</h2>
+      <img class="card" src="/api/card?user={{.User}}" alt="{{.User}} repo health card" width="495" height="195">
+      <label>Markdown for your profile README</label>
+      <div class="copy"><code>[![Repo health]({{.Base}}/api/card?user={{.User}})]({{.Base}}/u/{{.User}})</code><button type="button">Copy</button></div>
+      <label>Compact card · themes: dark, light, transparent, dracula, nord</label>
+      <div class="copy"><code>[![Repo health]({{.Base}}/api/card?user={{.User}}&amp;layout=compact&amp;theme=light)]({{.Base}}/u/{{.User}})</code><button type="button">Copy</button></div>
+    </div>
+    <div class="panel">
+      <h2>Profile</h2>
+      <ul class="checks">
+      {{- range $r.ProfileResults}}
+        <li class="{{.Status}}"><i>{{icon .Status}}</i> {{.Title}}{{if .Message}} <span class="muted">— {{.Message}}</span>{{end}}{{if and .Hint (ne .Status "pass")}}<small>{{.Hint}}</small>{{end}}</li>
+      {{- end}}
+      </ul>
+      <h2>Most common issues</h2>
+      <ul class="checks">
+      {{- range $r.Summary}}{{if .Failing}}
+        <li class="fail"><i>{{.Failing}}/{{.Total}}</i> {{.Title}}</li>
+      {{- end}}{{end}}
+      </ul>
+      <h2>Fix them automatically</h2>
+      <div class="copy"><code>gh extension install Emil-02/gh-spruce &amp;&amp; gh spruce fix --dry-run</code><button type="button">Copy</button></div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Repositories <span class="muted">(worst first)</span></h2>
+    <div class="repos">
+    {{- range $r.Repos}}
+      <details class="repo">
+        <summary>
+          <span class="pill {{tone .Score}}">{{.Grade}} {{.Score}}</span>
+          <a href="{{.Repo.URL}}" onclick="event.stopPropagation()">{{.Repo.Name}}</a>
+          <span class="issues">{{range .Failing}}<em class="{{.Status}}">{{.ID}}</em>{{else}}<em class="pass">all good</em>{{end}}</span>
+        </summary>
+        {{- if .Repo.Description}}<p class="muted">{{.Repo.Description}}</p>{{end}}
+        <ul class="checks">
+        {{- range .Results}}{{if ne .Status "skip"}}
+          <li class="{{.Status}}"><i>{{icon .Status}}</i> {{.Title}}{{if and .Message (ne .Status "pass")}} <span class="muted">— {{.Message}}</span>{{end}}{{if and .Hint (ne .Status "pass")}}<small>{{.Hint}}</small>{{end}}</li>
+        {{- end}}{{end}}
+        </ul>
+        <label>Badge for this README</label>
+        <div class="copy"><code>[![spruce]({{$.Base}}/api/badge?repo={{.Repo.FullName}})]({{$.Base}}/u/{{$.User}})</code><button type="button">Copy</button></div>
+      </details>
+    {{- end}}
+    </div>
+  </section>
+{{- end}}
+</main>
+<footer class="foot">Made with <a href="https://github.com/Emil-02/gh-spruce">gh-spruce</a> · public data only · <a href="https://github.com/Emil-02/gh-spruce#readme">How scores work</a></footer>
+<script>
+document.querySelectorAll('.copy button').forEach(function(b){b.addEventListener('click',function(){navigator.clipboard.writeText(b.previousElementSibling.textContent).then(function(){b.textContent='Copied';setTimeout(function(){b.textContent='Copy'},1500)})})});
+</script>
+</body>
+</html>

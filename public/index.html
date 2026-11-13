@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>gh-spruce · Lighthouse for your GitHub profile</title>
+<meta name="description" content="Audit every GitHub repository, get a 0–100 health score, fix it with one command and show it on your profile README.">
+<meta property="og:title" content="gh-spruce · Lighthouse for your GitHub profile">
+<meta property="og:description" content="Audit every repository, get a 0–100 health score, fix it with one command and share an SVG card.">
+<meta property="og:image" content="/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<header class="nav">
+  <a class="brand" href="/">🌲 gh-spruce</a>
+  <a class="gh" href="https://github.com/Emil-02/gh-spruce">★ Star on GitHub</a>
+</header>
+<main class="wrap">
+  <section class="land">
+    <h1>How healthy is your <span>GitHub profile</span>?</h1>
+    <p class="lead">gh-spruce scores every public repository from 0 to 100 (license, README, CI, topics, secrets, and more), tells you what to fix, and gives you a card for your profile README.</p>
+    <form class="big" onsubmit="event.preventDefault();var u=this.u.value.trim().replace(/^@/,'').replace(/^https?:\/\/github\.com\//,'').split('/')[0];if(u)location.href='/u/'+encodeURIComponent(u)">
+      <input name="u" placeholder="your GitHub username" aria-label="GitHub username" autocomplete="off" spellcheck="false" autofocus>
+      <button class="btn" type="submit">Check</button>
+    </form>
+    <p class="examples">Try <a href="/u/Emil-02">Emil-02</a> · <a href="/u/sindresorhus">sindresorhus</a> · <a href="/u/charmbracelet">charmbracelet</a></p>
+  </section>
+
+  <div class="demo"><img src="/api/card?user=Emil-02" alt="Example gh-spruce card" width="495" height="195"></div>
+
+  <section class="feats">
+    <div class="panel"><h3>📋 Audit</h3><p>15 checks per repository: README, license, description, topics, CI and its status, screenshots, .gitignore, committed build output, large files, leaked .env files and more.</p></div>
+    <div class="panel"><h3>🛠️ Fix</h3><p>The CLI opens one pull request per repository with a LICENSE, a CI workflow for your stack, a README skeleton, .gitignore and SECURITY.md.</p></div>
+    <div class="panel"><h3>🏅 Share</h3><p>Add a live health card to your profile and a badge to every repository. No sign-up and no install needed.</p></div>
+  </section>
+
+  <section class="grid">
+    <div class="panel">
+      <h2>Add the card to your profile README</h2>
+      <label>Replace USERNAME with your GitHub username</label>
+      <div class="copy"><code>[![Repo health](https://gh-spruce.vercel.app/api/card?user=USERNAME)](https://gh-spruce.vercel.app/u/USERNAME)</code><button type="button">Copy</button></div>
+      <label>Badge for a single repository</label>
+      <div class="copy"><code>[![spruce](https://gh-spruce.vercel.app/api/badge?repo=OWNER/REPO)](https://gh-spruce.vercel.app/u/OWNER)</code><button type="button">Copy</button></div>
+      <label>Options: <code>theme=dark|light|transparent|dracula|nord</code> · <code>layout=compact</code></label>
+    </div>
+    <div class="panel">
+      <h2>Fix everything from your terminal</h2>
+      <label>Requires the GitHub CLI</label>
+      <div class="copy"><code>gh extension install Emil-02/gh-spruce</code><button type="button">Copy</button></div>
+      <label>Preview, then open pull requests</label>
+      <div class="copy"><code>gh spruce fix --dry-run</code><button type="button">Copy</button></div>
+      <p class="muted" style="font-size:14px">The CLI also audits private repositories and scans the full file tree.</p>
+    </div>
+  </section>
+</main>
+<footer class="foot">Open source under MIT · <a href="https://github.com/Emil-02/gh-spruce">github.com/Emil-02/gh-spruce</a> · public data only</footer>
+<script>
+document.querySelectorAll('.copy button').forEach(function(b){b.addEventListener('click',function(){navigator.clipboard.writeText(b.previousElementSibling.textContent).then(function(){b.textContent='Copied';setTimeout(function(){b.textContent='Copy'},1500)})})});
+</script>
+</body>
+</html>

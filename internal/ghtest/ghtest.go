@@ -2,6 +2,7 @@
 package ghtest
 
 import (
+	"bytes"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -49,9 +50,11 @@ func (s *Server) Handle(route string, h func(w http.ResponseWriter, r *http.Requ
 
 func (s *Server) serve(w http.ResponseWriter, r *http.Request) {
 	var body map[string]any
-	if b, _ := io.ReadAll(r.Body); len(b) > 0 {
+	b, _ := io.ReadAll(r.Body)
+	if len(b) > 0 {
 		_ = json.Unmarshal(b, &body)
 	}
+	r.Body = io.NopCloser(bytes.NewReader(b))
 	s.mu.Lock()
 	s.Requests = append(s.Requests, Request{Method: r.Method, Path: r.URL.Path, Body: body})
 	s.mu.Unlock()

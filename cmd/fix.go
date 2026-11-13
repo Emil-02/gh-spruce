@@ -54,6 +54,9 @@ Adding workflow files requires the "workflow" token scope:
 			if err := validateOnly(opts.only); err != nil {
 				return err
 			}
+			if sf.fast {
+				return fmt.Errorf("fix needs the full scan; drop --fast")
+			}
 			s, err := load(cmd, args, &sf)
 			if err != nil {
 				return err

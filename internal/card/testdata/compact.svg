@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="300" height="100" viewBox="0 0 300 100" role="img" aria-labelledby="t">
+  <title id="t">o&lt;c&gt;to repository health: 77/100 (B)</title>
+  <style>
+    .h{font:600 16px 'Segoe UI',Ubuntu,'Helvetica Neue',Sans-Serif;fill:#0969da}
+    .l{font:400 13px 'Segoe UI',Ubuntu,'Helvetica Neue',Sans-Serif;fill:#1f2328}
+    .g{font:800 20px 'Segoe UI',Ubuntu,'Helvetica Neue',Sans-Serif;fill:#d29922}
+    .s{font:400 11px 'Segoe UI',Ubuntu,'Helvetica Neue',Sans-Serif;fill:#59636e}
+  </style>
+  <rect x="0.5" y="0.5" rx="6" width="299" height="99" fill="#ffffff" stroke="#d0d7de"/>
+  <g transform="translate(50 50)">
+    <circle r="30" fill="none" stroke="#eaeef2" stroke-width="6"/>
+    <circle r="30" fill="none" stroke="#d29922" stroke-width="6" stroke-linecap="round" stroke-dasharray="188.50" stroke-dashoffset="43.35" transform="rotate(-90)"/>
+    <text y="7" class="g" text-anchor="middle">B</text>
+  </g>
+  <text x="96" y="40" class="h">o&lt;c&gt;to</text>
+  <text x="96" y="62" class="l">Repo health 77/100</text>
+  <text x="96" y="82" class="s">2 public repos · gh-spruce</text>
+</svg>

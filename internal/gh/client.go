@@ -11,6 +11,7 @@ import (
 	"io"
 	"net/http"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/cli/go-gh/v2/pkg/api"
@@ -95,4 +96,68 @@ func Paginate[T any](ctx context.Context, c *Client, path string) ([]T, error) {
 		}
 	}
 	return all, nil
+}
+
+// GraphQLError is returned when the GraphQL API reports errors.
+type GraphQLError struct {
+	Type    string
+	Message string
+}
+
+func (e *GraphQLError) Error() string {
+	if e.Type != "" {
+		return "GraphQL " + e.Type + ": " + e.Message
+	}
+	return "GraphQL: " + e.Message
+}
+
+// GraphQL runs a query and decodes its data into out. Errors are returned
+// only when the response has no usable data or the API is rate limited.
+func (c *Client) GraphQL(ctx context.Context, query string, vars map[string]any, out any) error {
+	var resp struct {
+		Data   json.RawMessage `json:"data"`
+		Errors []struct {
+			Type    string `json:"type"`
+			Message string `json:"message"`
+		} `json:"errors"`
+	}
+	if err := c.Send(ctx, http.MethodPost, "graphql", map[string]any{"query": query, "variables": vars}, &resp); err != nil {
+		return err
+	}
+	for _, e := range resp.Errors {
+		if e.Type == "RATE_LIMITED" {
+			return &GraphQLError{Type: e.Type, Message: e.Message}
+		}
+	}
+	if len(resp.Data) == 0 || string(resp.Data) == "null" {
+		if len(resp.Errors) > 0 {
+			return &GraphQLError{Type: resp.Errors[0].Type, Message: resp.Errors[0].Message}
+		}
+		return &GraphQLError{Message: "empty response"}
+	}
+	return json.Unmarshal(resp.Data, out)
+}
+
+// IsRateLimited reports whether err means the token is out of quota.
+func IsRateLimited(err error) bool {
+	var ge *GraphQLError
+	if errors.As(err, &ge) {
+		return ge.Type == "RATE_LIMITED"
+	}
+	var he *api.HTTPError
+	if errors.As(err, &he) {
+		if he.StatusCode == http.StatusTooManyRequests {
+			return true
+		}
+		if he.StatusCode == http.StatusForbidden {
+			return he.Headers.Get("X-Ratelimit-Remaining") == "0" || strings.Contains(strings.ToLower(he.Message), "rate limit")
+		}
+	}
+	return false
+}
+
+// IsNotFoundGraphQL reports a GraphQL NOT_FOUND error.
+func IsNotFoundGraphQL(err error) bool {
+	var ge *GraphQLError
+	return errors.As(err, &ge) && ge.Type == "NOT_FOUND"
 }

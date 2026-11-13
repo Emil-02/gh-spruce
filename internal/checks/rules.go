@@ -19,6 +19,9 @@ func IsEmpty(r *scan.Repo) bool {
 		return true
 	}
 	for _, e := range r.Tree {
+		if e.Type == "tree" && e.Path != ".github" && !strings.HasPrefix(e.Path, ".github/") {
+			return false
+		}
 		if e.Type != "blob" {
 			continue
 		}

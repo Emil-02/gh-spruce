@@ -23,6 +23,12 @@ type Options struct {
 	Concurrency     int
 	Ignore          func(name string) bool
 	Progress        func(done, total int)
+	// Fast uses the GraphQL scanner (two tree levels, far fewer API calls).
+	Fast bool
+	// MaxRepos limits the fast scanner to the most recently pushed repositories.
+	MaxRepos int
+	// Viewer is the authenticated login when already known.
+	Viewer string
 }
 
 type apiRepo struct {
@@ -86,6 +92,12 @@ func Viewer(ctx context.Context, c *gh.Client) string {
 }
 
 func Run(ctx context.Context, c *gh.Client, opts Options) (*Result, error) {
+	if opts.Fast {
+		if opts.Viewer == "" {
+			opts.Viewer = Viewer(ctx, c)
+		}
+		return RunGraphQL(ctx, c, opts)
+	}
 	if opts.Concurrency <= 0 {
 		opts.Concurrency = 8
 	}
@@ -181,8 +193,12 @@ func Run(ctx context.Context, c *gh.Client, opts Options) (*Result, error) {
 		return nil, err
 	}
 	res.Profile.Pinned, res.Profile.PinnedKnown = pinned(ctx, c, owner.Login)
-	sort.Slice(res.Repos, func(i, j int) bool { return strings.ToLower(res.Repos[i].Name) < strings.ToLower(res.Repos[j].Name) })
+	sortRepos(res.Repos)
 	return res, nil
+}
+
+func sortRepos(repos []*Repo) {
+	sort.Slice(repos, func(i, j int) bool { return strings.ToLower(repos[i].Name) < strings.ToLower(repos[j].Name) })
 }
 
 func enrich(ctx context.Context, c *gh.Client, r *Repo) error {

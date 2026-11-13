@@ -49,6 +49,19 @@ func TestDetect(t *testing.T) {
 	}
 }
 
+func TestPartialFallsBackToLanguage(t *testing.T) {
+	r := repo("README.md")
+	r.Tree = append(r.Tree, scan.Entry{Path: "src", Type: "tree"})
+	r.Partial, r.Language = true, "Python"
+	if got := Detect(r).Kinds; !reflect.DeepEqual(got, []Kind{Python}) {
+		t.Errorf("partial detect = %v", got)
+	}
+	r.Partial = false
+	if got := Detect(r).Kinds; len(got) != 0 {
+		t.Errorf("full scan must not guess: %v", got)
+	}
+}
+
 func TestTopics(t *testing.T) {
 	info := Info{Kinds: []Kind{Next}, Extras: []string{"supabase"}}
 	got := Topics(info, "TypeScript")

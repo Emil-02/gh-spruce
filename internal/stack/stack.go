@@ -195,6 +195,12 @@ func Detect(r *scan.Repo) Info {
 	if !seen[Maven] && !seen[Gradle] && javaFiles > 0 {
 		add(Java)
 	}
+	if len(info.Kinds) == 0 && r.Partial {
+		// Deeper files are unknown in a partial scan; fall back to GitHub's language.
+		if k, ok := languageKinds[r.Language]; ok {
+			add(k)
+		}
+	}
 	if len(info.Kinds) == 0 && htmlFiles > 0 {
 		add(Static)
 	}
@@ -220,6 +226,11 @@ func Detect(r *scan.Repo) Info {
 	extra("docker", len(r.Find("Dockerfile")) > 0 || len(r.Find("docker-compose.y*ml")) > 0 || len(r.Find("compose.y*ml")) > 0)
 	extra("firebase", len(r.Find("firebase.json")) > 0 || len(r.Find("google-services.json")) > 0)
 	return info
+}
+
+var languageKinds = map[string]Kind{
+	"Python": Python, "Jupyter Notebook": Python, "Go": Go, "Java": Java, "Dart": Dart, "Rust": Rust,
+	"JavaScript": Node, "TypeScript": Node, "HTML": Static, "CSS": Static,
 }
 
 func hasDep(readme, word string) bool { return strings.Contains(strings.ToLower(readme), word) }

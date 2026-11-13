@@ -19,6 +19,7 @@ type scanFlags struct {
 	public, private bool
 	includeForks    bool
 	includeArchived bool
+	fast            bool
 }
 
 func (f *scanFlags) register(c *cobra.Command) {
@@ -27,6 +28,7 @@ func (f *scanFlags) register(c *cobra.Command) {
 	c.Flags().BoolVar(&f.private, "private", false, "only private repositories")
 	c.Flags().BoolVar(&f.includeForks, "include-forks", false, "include forked repositories")
 	c.Flags().BoolVar(&f.includeArchived, "include-archived", false, "include archived repositories")
+	c.Flags().BoolVar(&f.fast, "fast", false, "fast GraphQL scan (a few API calls; only the top two directory levels are inspected)")
 	c.MarkFlagsMutuallyExclusive("public", "private")
 }
 
@@ -54,7 +56,7 @@ func load(cmd *cobra.Command, args []string, f *scanFlags) (*session, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%w\nlog in with: gh auth login", err)
 	}
-	opts := scan.Options{Concurrency: conc, Ignore: cfg.Ignored, IncludeForks: f.includeForks, IncludeArchived: f.includeArchived}
+	opts := scan.Options{Concurrency: conc, Ignore: cfg.Ignored, IncludeForks: f.includeForks, IncludeArchived: f.includeArchived, Fast: f.fast}
 	if len(args) > 0 {
 		opts.Owner = args[0]
 		if o, r, ok := strings.Cut(args[0], "/"); ok {

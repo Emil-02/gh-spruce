@@ -43,7 +43,9 @@ type Repo struct {
 	SizeKB        int64     `json:"size_kb"`
 	PushedAt      time.Time `json:"pushed_at"`
 
-	Empty         bool         `json:"empty"`
+	Empty bool `json:"empty"`
+	// Partial means only the top two directory levels were scanned.
+	Partial       bool         `json:"partial,omitempty"`
 	HeadSHA       string       `json:"head_sha,omitempty"`
 	Tree          []Entry      `json:"-"`
 	TreeTruncated bool         `json:"tree_truncated,omitempty"`
