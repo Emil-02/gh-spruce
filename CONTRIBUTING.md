@@ -16,6 +16,7 @@ go test ./...                 # unit tests (no network, a fake GitHub API is use
 make lint                     # golangci-lint
 make golden                   # refresh SVG golden files after changing the card
 make install                  # install your local build as `gh spruce`
+GITHUB_TOKEN=$(gh auth token) go run ./cmd/spruce-web   # web service on :8080
 ```
 
 Rules of thumb:

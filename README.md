@@ -6,11 +6,14 @@
 [![Release](https://img.shields.io/github/v/release/Emil-02/gh-spruce)](https://github.com/Emil-02/gh-spruce/releases)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![gh extension](https://img.shields.io/badge/gh-extension-blue?logo=github)](https://cli.github.com/manual/gh_extension)
+[![spruce](https://gh-spruce.vercel.app/api/badge?repo=Emil-02/gh-spruce)](https://gh-spruce.vercel.app/u/Emil-02)
+
+**🌐 Try it in the browser, no install needed: [gh-spruce.vercel.app](https://gh-spruce.vercel.app)**
 
 🇮🇩 [Baca dalam Bahasa Indonesia](README.id.md)
 
 <p align="center">
-  <img src="docs/card.svg" alt="gh-spruce health card" width="495">
+  <a href="https://gh-spruce.vercel.app/u/Emil-02"><img src="https://gh-spruce.vercel.app/api/card?user=Emil-02" alt="gh-spruce health card" width="495"></a>
 </p>
 
 ![gh spruce audit](docs/audit.png)
@@ -23,6 +26,30 @@ Most of us have dozens of repositories with no license, no CI, no description, a
 - **Score** each repository and your whole profile from 0 to 100 with a clear, explainable model.
 - **Fix** what can be fixed automatically: one pull request per repository with a LICENSE, a CI workflow generated for the detected stack, a README skeleton, `.gitignore` and `SECURITY.md`; plus description, topics and live-demo links.
 - **Share** an SVG health card for your profile README that refreshes itself with a GitHub Action.
+
+## No install: cards, badges and reports by URL
+
+Open **https://gh-spruce.vercel.app/u/USERNAME** to see the report of any public profile, then paste this into your profile README:
+
+```markdown
+[![Repo health](https://gh-spruce.vercel.app/api/card?user=USERNAME)](https://gh-spruce.vercel.app/u/USERNAME)
+```
+
+| Endpoint | Options |
+|---|---|
+| `/api/card?user=USERNAME` | `theme=dark\|light\|transparent\|dracula\|nord`, `layout=compact` |
+| `/api/badge?repo=OWNER/REPO` | per-repository badge, `label=...` |
+| `/api/badge?user=USERNAME` | profile score badge |
+| `/api/report?user=USERNAME` | JSON report (CORS enabled) |
+| `/u/USERNAME` | HTML report with copy-ready snippets |
+
+Add a badge to any repository README:
+
+```markdown
+[![spruce](https://gh-spruce.vercel.app/api/badge?repo=OWNER/REPO)](https://gh-spruce.vercel.app/u/OWNER)
+```
+
+The web service only reads public data. It scans the 100 most recently pushed public repositories and their top two directory levels, and results are cached for up to 12 hours. Use the CLI for private repositories, the full file tree and fixes.
 
 ## Install
 
@@ -60,7 +87,7 @@ gh spruce audit my-org --public --md -o HEALTH.md
 | `gh spruce tui [owner]` | Interactive browser: `space` select, `a` select all fixable, `f` fix, `o` open in browser. |
 | `gh spruce checks` | Lists every check with its weight, scope and whether it can be fixed. |
 
-Common flags: `-R/--repo`, `--public`, `--private`, `--include-forks`, `--include-archived`, `--config`, `--concurrency`.
+Common flags: `-R/--repo`, `--public`, `--private`, `--include-forks`, `--include-archived`, `--fast` (GraphQL scan with far fewer API calls, top two directory levels only), `--config`, `--concurrency`.
 
 ## What is checked
 
@@ -158,6 +185,16 @@ holder: Jane Doe                # copyright holder
 | CI generated for the detected stack | ✅ | ❌ | ❌ |
 | Shareable profile card and Action | ✅ | ❌ | ❌ |
 | No server, no AI key, no clone | ✅ | varies | varies |
+
+## Self-hosting the web service
+
+The web service lives in [`web/`](web) and deploys to Vercel as one Go function ([`api/index.go`](api/index.go), [`vercel.json`](vercel.json)).
+
+```bash
+GITHUB_TOKEN=$(gh auth token) go run ./cmd/spruce-web   # http://localhost:8080
+```
+
+In production, set `GITHUB_TOKENS` to one or more comma-separated fine-grained tokens with read-only access to public repositories. The service rotates between them when one hits the rate limit. Use `BLOCKED_USERS` to opt profiles out.
 
 ## Contributing
 

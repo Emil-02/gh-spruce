@@ -88,7 +88,7 @@ func TestRunGraphQL(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(res.Repos) != 5 || detailCalls.Load() != 2 {
+	if len(res.Repos) != 5 || detailCalls.Load() != 1 {
 		t.Fatalf("repos=%d detailCalls=%d", len(res.Repos), detailCalls.Load())
 	}
 	if !res.Profile.HasReadme || !res.Profile.PinnedKnown || !res.Profile.Authenticated || res.Profile.Type != "User" {
@@ -146,5 +146,41 @@ func TestRunGraphQLOwnerNotFound(t *testing.T) {
 	})
 	if _, err := scan.RunGraphQL(context.Background(), s.Client(), scan.Options{Owner: "ghost"}); !errors.Is(err, scan.ErrNotFound) {
 		t.Errorf("err = %v", err)
+	}
+}
+
+func TestRunGraphQLFallsBackForHeavyRepos(t *testing.T) {
+	var rootOnly atomic.Int32
+	s := ghtest.New(t)
+	s.Handle("POST /graphql", func(w http.ResponseWriter, r *http.Request) {
+		var req struct {
+			Query     string         `json:"query"`
+			Variables map[string]any `json:"variables"`
+		}
+		b, _ := io.ReadAll(r.Body)
+		_ = json.Unmarshal(b, &req)
+		w.Header().Set("Content-Type", "application/json")
+		switch {
+		case strings.Contains(req.Query, "repositories(first: 100"):
+			_ = json.NewEncoder(w).Encode(map[string]any{"data": map[string]any{"repositoryOwner": map[string]any{"__typename": "User", "login": "octo",
+				"repositories": map[string]any{"pageInfo": map[string]any{}, "nodes": []any{light("small", nil), light("huge", nil)}}}}})
+		case strings.Contains(req.Query, "...D }"):
+			heavy := strings.Contains(req.Query, "object { ... on Tree")
+			if heavy && (req.Variables["n0"] == "huge" || req.Variables["n1"] == "huge") {
+				w.WriteHeader(http.StatusBadGateway)
+				return
+			}
+			if !heavy {
+				rootOnly.Add(1)
+			}
+			_ = json.NewEncoder(w).Encode(map[string]any{"data": map[string]any{"r0": detail("# " + req.Variables["n0"].(string))}})
+		}
+	})
+	res, err := scan.RunGraphQL(context.Background(), s.Client(), scan.Options{Owner: "octo"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(res.Repos) != 2 || res.Repos[0].Readme != "# huge" || res.Repos[1].Readme != "# small" || rootOnly.Load() != 1 {
+		t.Errorf("fallback: rootOnly=%d repos=%+v", rootOnly.Load(), res.Repos)
 	}
 }

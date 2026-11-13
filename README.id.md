@@ -4,8 +4,10 @@
 
 🇬🇧 [Read in English](README.md)
 
+**🌐 Coba langsung di browser tanpa install: [gh-spruce.vercel.app](https://gh-spruce.vercel.app)**
+
 <p align="center">
-  <img src="docs/card.svg" alt="kartu kesehatan gh-spruce" width="495">
+  <a href="https://gh-spruce.vercel.app/u/Emil-02"><img src="https://gh-spruce.vercel.app/api/card?user=Emil-02" alt="kartu kesehatan gh-spruce" width="495"></a>
 </p>
 
 ![gh spruce audit](docs/audit.png)
@@ -18,6 +20,22 @@ Banyak dari kita punya puluhan repo tanpa lisensi, tanpa CI, dan tanpa deskripsi
 - **Skor** 0–100 untuk tiap repo dan untuk profil secara keseluruhan, dengan model penilaian yang mudah dipahami.
 - **Perbaikan otomatis**: satu pull request per repo berisi LICENSE, workflow CI sesuai stack, kerangka README, `.gitignore`, dan `SECURITY.md`. Deskripsi, topics, dan link demo juga diisi.
 - **Kartu SVG** untuk README profil yang diperbarui otomatis lewat GitHub Action.
+
+## Tanpa install: kartu, badge, dan laporan lewat URL
+
+Buka **https://gh-spruce.vercel.app/u/USERNAME** untuk melihat laporan profil publik siapa saja. Untuk memasang kartu di README profilmu, tempel ini:
+
+```markdown
+[![Repo health](https://gh-spruce.vercel.app/api/card?user=USERNAME)](https://gh-spruce.vercel.app/u/USERNAME)
+```
+
+Untuk badge per repo:
+
+```markdown
+[![spruce](https://gh-spruce.vercel.app/api/badge?repo=OWNER/REPO)](https://gh-spruce.vercel.app/u/OWNER)
+```
+
+Versi web hanya membaca data publik: 100 repo yang terakhir di-push, sampai 2 tingkat folder. Hasilnya di-cache maksimal 12 jam. Untuk repo privat, pemindaian lengkap, dan perbaikan otomatis, pakai CLI.
 
 ## Instalasi
 

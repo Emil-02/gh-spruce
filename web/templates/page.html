@@ -37,7 +37,7 @@
     <img class="avatar" src="https://github.com/{{.User}}.png?size=160" alt="" width="80" height="80">
     <div class="who">
       <h1>{{if $r.Profile.Name}}{{$r.Profile.Name}} <span class="muted">@{{.User}}</span>{{else}}@{{.User}}{{end}}</h1>
-      <p class="muted">{{public $r}} public repositories scanned · <a href="https://github.com/{{.User}}">github.com/{{.User}}</a></p>
+      <p class="muted">{{public $r}} public repositories scanned{{if eq (public $r) .Limit}} (the {{.Limit}} most recently pushed){{end}} · <a href="https://github.com/{{.User}}">github.com/{{.User}}</a></p>
     </div>
     <div class="score {{tone $r.Score}}"><b>{{$r.Grade}}</b><span>{{$r.Score}}/100</span></div>
   </section>

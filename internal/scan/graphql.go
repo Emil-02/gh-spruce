@@ -27,13 +27,24 @@ fragment L on Repository {
 const detailFields = `
 fragment D on Repository {
   defaultBranchRef { name target { ... on Commit { oid statusCheckRollup { state } } } }
-  root: object(expression: "HEAD:") { ... on Tree { entries { name type size object { ... on Tree { entries { name type size } } } } } }
+  root: object(expression: "HEAD:") { ... on Tree { entries { name type size object { ... on Tree { entries { name type } } } } } }
   workflows: object(expression: "HEAD:.github/workflows") { ... on Tree { entries { name type } } }
   r1: object(expression: "HEAD:README.md") { ... on Blob { text } }
   r2: object(expression: "HEAD:readme.md") { ... on Blob { text } }
   r3: object(expression: "HEAD:README") { ... on Blob { text } }
   r4: object(expression: "HEAD:Readme.md") { ... on Blob { text } }
   r5: object(expression: "HEAD:README.rst") { ... on Blob { text } }
+}`
+
+// rootFields is the fallback for huge repositories whose second tree level
+// makes GitHub time out.
+const rootFields = `
+fragment D on Repository {
+  defaultBranchRef { name target { ... on Commit { oid statusCheckRollup { state } } } }
+  root: object(expression: "HEAD:") { ... on Tree { entries { name type size } } }
+  workflows: object(expression: "HEAD:.github/workflows") { ... on Tree { entries { name type } } }
+  r1: object(expression: "HEAD:README.md") { ... on Blob { text } }
+  r2: object(expression: "HEAD:readme.md") { ... on Blob { text } }
 }`
 
 const ownerQuery = `query($login: String!, $after: String, $privacy: RepositoryPrivacy, $isFork: Boolean) {
@@ -60,10 +71,10 @@ const repoQuery = `query($owner: String!, $name: String!) {
   repository(owner: $owner, name: $name) { ...L ...D }
 }` + lightFields + detailFields
 
-// detailQuery fetches trees and READMEs for a batch of repositories in one
+// batchQuery fetches trees and READMEs for a batch of repositories in one
 // request; GitHub resolves them sequentially, so batches are kept small and
 // run in parallel.
-func detailQuery(n int) string {
+func batchQuery(n int, fields string) string {
 	var b strings.Builder
 	b.WriteString("query($owner: String!")
 	for i := 0; i < n; i++ {
@@ -74,7 +85,7 @@ func detailQuery(n int) string {
 		fmt.Fprintf(&b, " r%d: repository(owner: $owner, name: $n%d) { ...D }", i, i)
 	}
 	b.WriteString(" }")
-	return b.String() + detailFields
+	return b.String() + fields
 }
 
 type gqlEntry struct {
@@ -251,6 +262,23 @@ func (g gqlRepo) toRepo() *Repo {
 	return r
 }
 
+func fetchDetails(ctx context.Context, c *gh.Client, owner string, part []gqlRepo, fields string) error {
+	v := map[string]any{"owner": owner}
+	for i, r := range part {
+		v[fmt.Sprintf("n%d", i)] = r.Name
+	}
+	out := map[string]*gqlRepo{}
+	if err := c.GraphQL(ctx, batchQuery(len(part), fields), v, &out); err != nil {
+		return err
+	}
+	for i := range part {
+		if d := out[fmt.Sprintf("r%d", i)]; d != nil {
+			part[i].mergeDetail(d)
+		}
+	}
+	return nil
+}
+
 func (g *gqlRepo) mergeDetail(d *gqlRepo) {
 	g.DefaultBranchRef, g.Root, g.Workflows = d.DefaultBranchRef, d.Root, d.Workflows
 	g.R1, g.R2, g.R3, g.R4, g.R5 = d.R1, d.R2, d.R3, d.R4, d.R5
@@ -353,7 +381,7 @@ func RunGraphQL(ctx context.Context, c *gh.Client, opts Options) (*Result, error
 		vars["after"] = pi.EndCursor
 	}
 
-	const batch = 4
+	const batch = 5
 	conc := opts.Concurrency
 	if conc <= 0 {
 		conc = 6
@@ -363,17 +391,19 @@ func RunGraphQL(ctx context.Context, c *gh.Client, opts Options) (*Result, error
 	for start := 0; start < len(listed); start += batch {
 		part := listed[start:min(start+batch, len(listed))]
 		g.Go(func() error {
-			v := map[string]any{"owner": res.Profile.Login}
-			for i, r := range part {
-				v[fmt.Sprintf("n%d", i)] = r.Name
-			}
-			out := map[string]*gqlRepo{}
-			if err := c.GraphQL(gctx, detailQuery(len(part)), v, &out); err != nil {
-				return err
-			}
-			for i := range part {
-				if d := out[fmt.Sprintf("r%d", i)]; d != nil {
-					part[i].mergeDetail(d)
+			if err := fetchDetails(gctx, c, res.Profile.Login, part, detailFields); err != nil {
+				if gh.IsRateLimited(err) || gctx.Err() != nil {
+					return err
+				}
+				// One heavy repository can make the whole batch time out:
+				// retry one by one, then with the root level only.
+				for i := range part {
+					one := part[i : i+1]
+					if err := fetchDetails(gctx, c, res.Profile.Login, one, detailFields); err != nil {
+						if err := fetchDetails(gctx, c, res.Profile.Login, one, rootFields); err != nil {
+							return fmt.Errorf("%s: %w", part[i].Name, err)
+						}
+					}
 				}
 			}
 			if opts.Progress != nil {

@@ -50,7 +50,7 @@ func New(cfg Config) (*Server, error) {
 		cfg.Now = time.Now
 	}
 	if cfg.MaxRepos <= 0 {
-		cfg.MaxRepos = 200
+		cfg.MaxRepos = 100
 	}
 	if cfg.CacheTTL <= 0 {
 		cfg.CacheTTL = 10 * time.Minute
@@ -156,7 +156,7 @@ func (s *Server) report(ctx context.Context, owner, repo string) (*checks.Report
 		var res *scan.Result
 		err := s.pool.Do(ctx, func(c *gh.Client) error {
 			var err error
-			res, err = scan.RunGraphQL(ctx, c, scan.Options{Owner: owner, Repo: repo, Visibility: "public", MaxRepos: s.cfg.MaxRepos})
+			res, err = scan.RunGraphQL(ctx, c, scan.Options{Owner: owner, Repo: repo, Visibility: "public", MaxRepos: s.cfg.MaxRepos, Concurrency: 10})
 			return err
 		})
 		if err != nil {
@@ -360,6 +360,7 @@ var pageTmpl = template.Must(template.New("").Funcs(template.FuncMap{
 }).ParseFS(templateFS, "templates/*.html"))
 
 type pageData struct {
+	Limit  int
 	User   string
 	Base   string
 	Report *checks.Report
@@ -380,7 +381,7 @@ func baseURL(r *http.Request) string {
 }
 
 func (s *Server) page(w http.ResponseWriter, r *http.Request, user string) {
-	d := pageData{User: user, Base: baseURL(r), Status: http.StatusOK}
+	d := pageData{User: user, Base: baseURL(r), Status: http.StatusOK, Limit: s.cfg.MaxRepos}
 	rep, err := s.report(r.Context(), user, "")
 	cache := pageCache
 	if err != nil {
