@@ -1,0 +1,31 @@
+name: Action test
+
+on:
+  push:
+    branches: [main]
+    paths: [action.yml, .github/workflows/action-test.yml]
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  card:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - id: spruce
+        uses: ./
+        with:
+          commit: "false"
+          output: out/card.svg
+      - name: Verify card
+        env:
+          SCORE: ${{ steps.spruce.outputs.score }}
+          GRADE: ${{ steps.spruce.outputs.grade }}
+        run: |
+          grep -q "<svg" out/card.svg
+          test -n "$SCORE" && test -n "$GRADE"
+          echo "Score $SCORE ($GRADE)" >> "$GITHUB_STEP_SUMMARY"
