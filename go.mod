@@ -1,6 +1,6 @@
 module github.com/Emil-02/gh-spruce
 
-go 1.27.3
+go 1.26.7
 
 require (
 	github.com/charmbracelet/bubbletea v1.3.10
