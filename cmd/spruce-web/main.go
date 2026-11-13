@@ -8,7 +8,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/Emil-02/gh-spruce/internal/web"
+	"github.com/Emil-02/gh-spruce/web"
 )
 
 func main() {

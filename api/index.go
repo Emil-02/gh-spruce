@@ -4,7 +4,7 @@ package handler
 import (
 	"net/http"
 
-	"github.com/Emil-02/gh-spruce/internal/web"
+	"github.com/Emil-02/gh-spruce/web"
 )
 
 func Handler(w http.ResponseWriter, r *http.Request) {

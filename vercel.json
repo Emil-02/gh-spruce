@@ -1,20 +1,35 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
   "cleanUrls": true,
-  "functions": {
-    "api/index.go": { "maxDuration": 30 }
-  },
   "rewrites": [
-    { "source": "/u/:user", "destination": "/api/index?route=page&user=:user" },
-    { "source": "/api/:route(card|badge|report|health)", "destination": "/api/index?route=:route" }
+    {
+      "source": "/u/:user",
+      "destination": "/api/index?route=page&user=:user"
+    },
+    {
+      "source": "/api/:route(card|badge|report|health)",
+      "destination": "/api/index?route=:route"
+    }
   ],
   "headers": [
     {
       "source": "/(.*)",
       "headers": [
-        { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        }
       ]
     }
-  ]
+  ],
+  "functions": {
+    "api/index.go": {
+      "maxDuration": 30
+    }
+  }
 }
