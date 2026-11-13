@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  push:
+    branches: [{{.Branch}}]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+{{- if .Dir}}
+    defaults:
+      run:
+        working-directory: {{.Dir}}
+{{- end}}
+    steps:
+      - uses: actions/checkout@v7
+{{- if eq .PM "pnpm"}}
+      - uses: pnpm/action-setup@v6
+{{- if not .PMPinned}}
+        with:
+          version: 10
+{{- end}}
+{{- end}}
+{{- if eq .PM "bun"}}
+      - uses: oven-sh/setup-bun@v2
+{{- else}}
+      - uses: actions/setup-node@v7
+        with:
+          node-version: lts/*
+{{- if .Lockfile}}
+          cache: {{.PM}}
+          cache-dependency-path: {{.Lockfile}}
+{{- end}}
+{{- end}}
+      - run: {{.Install}}
+{{- range .Scripts}}
+      - run: {{$.Run}} {{.}}
+{{- end}}
+{{- if .Env}}
+    env:
+{{- range .Env}}
+      {{.Key}}: {{.Value}}
+{{- end}}
+{{- end}}

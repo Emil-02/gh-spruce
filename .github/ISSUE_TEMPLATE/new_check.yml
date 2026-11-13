@@ -1,0 +1,14 @@
+name: Idea for a check or fix
+description: Suggest a new repository health check, CI template or auto-fix
+labels: [enhancement]
+body:
+  - type: textarea
+    id: idea
+    attributes:
+      label: What should gh-spruce detect or fix?
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why does it matter for a repository or profile?

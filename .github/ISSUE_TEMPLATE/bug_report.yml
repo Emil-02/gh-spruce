@@ -1,0 +1,21 @@
+name: Bug report
+description: Something is wrong or a check gives a false result
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: Command you ran, what you expected and what you got. Remove anything private.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: gh spruce --version
+    validations:
+      required: true
+  - type: input
+    id: os
+    attributes:
+      label: Operating system

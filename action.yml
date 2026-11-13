@@ -1,0 +1,77 @@
+name: gh-spruce health card
+description: Render an SVG repository health card for your GitHub profile README with gh-spruce.
+author: Emil-02
+branding:
+  icon: award
+  color: green
+
+inputs:
+  owner:
+    description: User or organization to score.
+    default: ${{ github.repository_owner }}
+  output:
+    description: Path of the SVG file to write.
+    default: spruce-card.svg
+  theme:
+    description: dark, light, transparent, dracula or nord.
+    default: dark
+  token:
+    description: Token used to read repositories. The default GITHUB_TOKEN can read public repositories.
+    default: ${{ github.token }}
+  commit:
+    description: Commit and push the card when it changed.
+    default: "true"
+  commit-message:
+    description: Commit message.
+    default: "chore: update gh-spruce health card"
+  version:
+    description: gh-spruce release tag to install (default latest).
+    default: ""
+
+outputs:
+  score:
+    description: Profile score (0-100).
+    value: ${{ steps.card.outputs.score }}
+  grade:
+    description: Profile grade (A+ to F).
+    value: ${{ steps.card.outputs.grade }}
+
+runs:
+  using: composite
+  steps:
+    - name: Install gh-spruce
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.token }}
+        VERSION: ${{ inputs.version }}
+      run: |
+        if [ -n "$VERSION" ]; then
+          gh extension install Emil-02/gh-spruce --pin "$VERSION"
+        else
+          gh extension install Emil-02/gh-spruce
+        fi
+    - name: Render card
+      id: card
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.token }}
+        OWNER: ${{ inputs.owner }}
+        OUTPUT: ${{ inputs.output }}
+        THEME: ${{ inputs.theme }}
+      run: |
+        mkdir -p "$(dirname "$OUTPUT")"
+        gh spruce card "$OWNER" --theme "$THEME" -o "$OUTPUT"
+    - name: Commit card
+      if: inputs.commit == 'true'
+      shell: bash
+      env:
+        OUTPUT: ${{ inputs.output }}
+        MESSAGE: ${{ inputs.commit-message }}
+      run: |
+        git add -- "$OUTPUT"
+        if git diff --cached --quiet; then
+          echo "Card unchanged."
+          exit 0
+        fi
+        git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -m "$MESSAGE"
+        git push

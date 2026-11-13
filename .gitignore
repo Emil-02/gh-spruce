@@ -1,0 +1,7 @@
+/gh-spruce
+/dist/
+*.exe
+/spruce-card.svg
+coverage.out
+.env
+.env.*

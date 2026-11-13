@@ -1,0 +1,23 @@
+name: CI
+
+on:
+  push:
+    branches: [{{.Branch}}]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+{{- if .Dir}}
+    defaults:
+      run:
+        working-directory: {{.Dir}}
+{{- end}}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo build --locked
+      - run: cargo test --locked

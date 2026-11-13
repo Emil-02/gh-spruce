@@ -1,0 +1,26 @@
+name: CI
+
+on:
+  push:
+    branches: [{{.Branch}}]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+{{- if .Dir}}
+    defaults:
+      run:
+        working-directory: {{.Dir}}
+{{- end}}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dart-lang/setup-dart@v1
+      - run: dart pub get
+      - run: dart analyze --no-fatal-warnings
+{{- if .HasTests}}
+      - run: dart test
+{{- end}}

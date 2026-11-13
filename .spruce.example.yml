@@ -1,0 +1,24 @@
+# Copy to .spruce.yml (current directory) or ~/.config/gh-spruce/config.yml.
+
+# Repositories to skip (names or glob patterns).
+ignore:
+  - "SEM_*"
+  - playground
+
+# Checks to turn off completely (see `gh spruce checks`).
+disable:
+  - security-md
+
+# Override weights. Score = earned weight / applicable weight.
+weights:
+  ci: 15
+
+# Used by `gh spruce fix`.
+license: mit            # mit, apache-2.0, gpl-3.0, bsd-3-clause, mpl-2.0, unlicense
+holder: Your Name       # copyright holder (default: your GitHub name)
+
+# Thresholds.
+min_topics: 3
+large_file_mb: 10
+stale_days: 365
+min_readme_length: 300

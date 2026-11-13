@@ -1,0 +1,35 @@
+# {{.Name}}
+
+{{if .Description}}{{.Description}}{{else}}_One-sentence description of what this project does and who it is for._{{end}}
+{{- if .Demo}}
+
+**Live demo:** {{.Demo}}
+{{- end}}
+
+<!-- Add a screenshot or GIF here, e.g. ![Screenshot](docs/screenshot.png) -->
+
+## Features
+
+- _Feature one_
+- _Feature two_
+{{- if .Stack}}
+
+## Tech stack
+{{range .Stack}}
+- {{.}}
+{{- end}}
+{{- end}}
+
+## Getting started
+
+```bash
+git clone https://github.com/{{.FullName}}.git
+cd {{.Name}}{{if .Dir}}/{{.Dir}}{{end}}
+{{- range .Setup}}
+{{.}}
+{{- end}}
+```
+
+## License
+
+{{if .License}}Released under the {{.License}} license. See [LICENSE](LICENSE).{{else}}All rights reserved.{{end}}
