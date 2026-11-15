@@ -27,7 +27,7 @@ func report() *checks.Report {
 }
 
 func TestRenderGolden(t *testing.T) {
-	for _, theme := range []string{"dark", "light"} {
+	for _, theme := range []string{"dark", "light", "catppuccin", "tokyo-night"} {
 		got, err := Render(report(), theme)
 		if err != nil {
 			t.Fatal(err)

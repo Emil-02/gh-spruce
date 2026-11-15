@@ -37,7 +37,7 @@ Open **https://gh-spruce.vercel.app/u/USERNAME** to see the report of any public
 
 | Endpoint | Options |
 |---|---|
-| `/api/card?user=USERNAME` | `theme=dark\|light\|transparent\|dracula\|nord`, `layout=compact` |
+| `/api/card?user=USERNAME` | `theme=dark\|light\|transparent\|dracula\|nord\|catppuccin\|tokyo-night`, `layout=compact` |
 | `/api/badge?repo=OWNER/REPO` | per-repository badge, `label=...` |
 | `/api/badge?user=USERNAME` | profile score badge |
 | `/api/report?user=USERNAME` | JSON report (CORS enabled) |
@@ -83,7 +83,7 @@ gh spruce audit my-org --public --md -o HEALTH.md
 |---|---|
 | `gh spruce audit [owner \| owner/repo]` | Table (default), `--json` or `--md` report. `--fail-under 80` exits non-zero, handy in CI. |
 | `gh spruce fix [owner \| owner/repo]` | Applies fixes. `--dry-run`, `--show` (print file contents), `--only license,ci`, `--license apache-2.0`, `--direct`, `--yes`. |
-| `gh spruce card [owner]` | Renders the SVG card. `--theme dark\|light\|transparent\|dracula\|nord`, `-o file.svg` or `-o -`. |
+| `gh spruce card [owner]` | Renders the SVG card. `--theme dark\|light\|transparent\|dracula\|nord\|catppuccin\|tokyo-night`, `-o file.svg` or `-o -`. |
 | `gh spruce tui [owner]` | Interactive browser: `space` select, `a` select all fixable, `f` fix, `o` open in browser. |
 | `gh spruce checks` | Lists every check with its weight, scope and whether it can be fixed. |
 
@@ -142,7 +142,7 @@ jobs:
       - uses: actions/checkout@v7
       - uses: Emil-02/gh-spruce@v0.1.0
         with:
-          theme: dark          # light, transparent, dracula, nord
+          theme: dark          # light, transparent, dracula, nord, catppuccin, tokyo-night
           output: spruce-card.svg
 ```
 

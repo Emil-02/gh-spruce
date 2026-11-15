@@ -21,9 +21,13 @@ var Themes = map[string]Theme{
 	"transparent": {"transparent", "none", "#8b949e55", "#2f81f7", "#7d8590", "#7d8590", "#7d859033"},
 	"dracula":     {"dracula", "#282a36", "#44475a", "#ff79c6", "#f8f8f2", "#6272a4", "#44475a"},
 	"nord":        {"nord", "#2e3440", "#4c566a", "#88c0d0", "#eceff4", "#81a1c1", "#3b4252"},
+	"catppuccin":  {"catppuccin", "#1e1e2e", "#45475a", "#b4befe", "#cdd6f4", "#6c7086", "#313244"},
+	"tokyo-night": {"tokyo-night", "#1a1b26", "#3b4261", "#7aa2f7", "#c0caf5", "#565f89", "#24283b"},
 }
 
-func ThemeNames() []string { return []string{"dark", "light", "transparent", "dracula", "nord"} }
+func ThemeNames() []string {
+	return []string{"dark", "light", "transparent", "dracula", "nord", "catppuccin", "tokyo-night"}
+}
 
 type stat struct {
 	Label, Value string
