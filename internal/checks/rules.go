@@ -53,6 +53,12 @@ var boilerplate = []string{
 	"this template provides a minimal setup to get react working in vite",
 	"this template should help get you started developing with vue 3 in vite",
 	"## getting started\n\nthis project is a starting point for a flutter application",
+	"this is an expo project created with create-expo-app",
+	"this project was generated with [angular cli]",
+	"## project setup\n\n```\nnpm install\n```",
+	"laravel is a web application framework with expressive, elegant syntax",
+	"vue create",
+	"ng new",
 }
 
 func IsBoilerplateReadme(s string) bool {
