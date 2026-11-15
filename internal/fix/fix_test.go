@@ -57,6 +57,64 @@ func nodeRepo() *scan.Repo {
 	}
 }
 
+func phpRepo() *scan.Repo {
+	return &scan.Repo{
+		Owner: "octo", Name: "api", FullName: "octo/api", DefaultBranch: "main", CanPush: true,
+		Language: "PHP",
+		Tree: []scan.Entry{
+			{Path: "composer.json", Type: "blob"}, {Path: "app/Http/Controllers/UserController.php", Type: "blob"},
+		},
+	}
+}
+
+func TestPlanPHPCi(t *testing.T) {
+	s := ghtest.New(t)
+	s.JSON("GET /repos/octo/api/contents/composer.json", 200, map[string]string{
+		"content": b64(`{"require":{"php":"^8.1"},"scripts":{"test":"phpunit"}}`)})
+	cfg := config.Default()
+	rr := checks.Evaluate(phpRepo(), cfg, now)
+	p := &Planner{Client: s.Client(), Config: cfg, Holder: "Octo Cat", Now: now}
+	patch, err := p.Plan(context.Background(), rr, map[string]bool{"ci": true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	files := map[string]string{}
+	for _, f := range patch.Files {
+		files[f.Path] = f.Content
+	}
+	ci := files[".github/workflows/ci.yml"]
+	for _, want := range []string{"composer install", "composer test", `php-version: "8.1"`} {
+		if !strings.Contains(ci, want) {
+			t.Errorf("ci.yml missing %q:\n%s", want, ci)
+		}
+	}
+}
+
+func TestPlanPHPCiWithoutTestScript(t *testing.T) {
+	s := ghtest.New(t)
+	s.JSON("GET /repos/octo/api/contents/composer.json", 200, map[string]string{
+		"content": b64(`{"require":{"php":"^8.2"}}`)})
+	cfg := config.Default()
+	rr := checks.Evaluate(phpRepo(), cfg, now)
+	p := &Planner{Client: s.Client(), Config: cfg, Holder: "Octo Cat", Now: now}
+	patch, err := p.Plan(context.Background(), rr, map[string]bool{"ci": true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	ci := ""
+	for _, f := range patch.Files {
+		if f.Path == ".github/workflows/ci.yml" {
+			ci = f.Content
+		}
+	}
+	if !strings.Contains(ci, "composer install") {
+		t.Errorf("ci.yml missing composer install:\n%s", ci)
+	}
+	if strings.Contains(ci, "composer test") {
+		t.Errorf("ci.yml runs composer test without a test script:\n%s", ci)
+	}
+}
+
 func fakeAPI(t *testing.T) *ghtest.Server {
 	s := ghtest.New(t)
 	s.JSON("GET /licenses/mit", 200, map[string]string{"body": "MIT License\n\nCopyright (c) [year] [fullname]\n"})

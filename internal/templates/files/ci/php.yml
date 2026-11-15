@@ -1,0 +1,30 @@
+name: CI
+
+on:
+  push:
+    branches: [{{.Branch}}]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+{{- if .Dir}}
+    defaults:
+      run:
+        working-directory: {{.Dir}}
+{{- end}}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: "{{.PHPVersion}}"
+          coverage: none
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist
+{{- if .Test}}
+      - name: Test
+        run: composer test
+{{- end}}

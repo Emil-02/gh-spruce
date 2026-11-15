@@ -99,7 +99,7 @@ Common flags: `-R/--repo`, `--public`, `--private`, `--include-forks`, `--includ
 | Repository description | 10 | first sentence of the README |
 | At least 3 topics *(public)* | 10 | inferred from stack, language and README |
 | Live demo link *(public, when a Vercel/Netlify/Pages/… URL is found)* | 5 | sets the homepage |
-| Continuous integration | 10 | workflow for Next.js/Vite/Node (npm, pnpm, yarn, bun), Flutter, Dart, Python, Go, Maven, Gradle, plain Java, Rust |
+| Continuous integration | 10 | workflow for Next.js/Vite/Node (npm, pnpm, yarn, bun), Flutter, Dart, Python, Go, Maven, Gradle, plain Java, Rust, PHP |
 | CI passing on the default branch | 5 | – |
 | Screenshot or GIF in the README *(public apps)* | 5 | – |
 | `.gitignore` | 5 | from GitHub's gitignore templates |
