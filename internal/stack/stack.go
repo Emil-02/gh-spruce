@@ -23,6 +23,7 @@ const (
 	Gradle  Kind = "gradle"
 	Java    Kind = "java"
 	Rust    Kind = "rust"
+	PHP     Kind = "php"
 	Static  Kind = "static"
 )
 
@@ -112,6 +113,8 @@ func Detect(r *scan.Repo) Info {
 			}
 		case base == "Cargo.toml":
 			setDir("rust", e.Path)
+		case base == "composer.json":
+			setDir("php", e.Path)
 		case base == "pyproject.toml" || base == "requirements.txt" || base == "setup.py":
 			setDir("python", e.Path)
 		case strings.HasSuffix(base, ".py"):
@@ -131,7 +134,7 @@ func Detect(r *scan.Repo) Info {
 		return false
 	}
 
-	order := []string{"dart", "node", "go", "rust", "maven", "gradle", "python"}
+	order := []string{"dart", "node", "go", "rust", "maven", "gradle", "python", "php"}
 	// Prefer the manifest closest to the root as the primary stack.
 	sort.SliceStable(order, func(i, j int) bool {
 		di, iok := manifestDir[order[i]]
@@ -187,6 +190,8 @@ func Detect(r *scan.Repo) Info {
 			add(Gradle)
 		case "python":
 			add(Python)
+		case "php":
+			add(PHP)
 		}
 	}
 	if !seen[Python] && pyFiles > 0 {
@@ -230,7 +235,7 @@ func Detect(r *scan.Repo) Info {
 
 var languageKinds = map[string]Kind{
 	"Python": Python, "Jupyter Notebook": Python, "Go": Go, "Java": Java, "Dart": Dart, "Rust": Rust,
-	"JavaScript": Node, "TypeScript": Node, "HTML": Static, "CSS": Static,
+	"PHP": PHP, "JavaScript": Node, "TypeScript": Node, "HTML": Static, "CSS": Static,
 }
 
 func hasDep(readme, word string) bool { return strings.Contains(strings.ToLower(readme), word) }
@@ -258,6 +263,8 @@ func Topics(i Info, language string) []string {
 			t = append(t, "java")
 		case Rust:
 			t = append(t, "rust")
+		case PHP:
+			t = append(t, "php")
 		case Static:
 			t = append(t, "html", "css", "website")
 		}

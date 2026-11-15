@@ -35,6 +35,8 @@ func TestDetect(t *testing.T) {
 		{"go", repo("go.mod", "main.go", "x_test.go"), []Kind{Go}, "", "", true},
 		{"maven", repo("pom.xml", "src/main/java/A.java"), []Kind{Maven}, "", "", false},
 		{"plain java", repo("src/Main.java", "src/Util.java"), []Kind{Java}, "", "", false},
+		{"php", repo("composer.json", "src/Controller.php"), []Kind{PHP}, "", "", false},
+		{"php in a subdirectory", repo("api/composer.json", "api/src/Controller.php"), []Kind{PHP}, "api", "", false},
 		{"static", repo("index.html", "style.css"), []Kind{Static}, "", "", false},
 		{"ignores node_modules", repo("node_modules/x/package.json", "index.html"), []Kind{Static}, "", "", false},
 		{"android gradle is flutter", repo("pubspec.yaml", "lib/main.dart", "android/app/build.gradle"), []Kind{Flutter}, "", "", false},
