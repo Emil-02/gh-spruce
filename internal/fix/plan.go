@@ -235,10 +235,26 @@ func (p *Planner) readme(rr checks.RepoReport, x checks.Result, patch *Patch, li
 var ciTemplate = map[stack.Kind]string{
 	stack.Next: "node", stack.Vite: "node", stack.Node: "node", stack.Flutter: "flutter", stack.Dart: "dart",
 	stack.Python: "python", stack.Go: "go", stack.Maven: "maven", stack.Gradle: "gradle", stack.Java: "java",
-	stack.Rust: "rust",
+	stack.Rust: "rust", stack.PHP: "php",
 }
 
 type envVar struct{ Key, Value string }
+
+type composerFile struct {
+	Scripts map[string]string `json:"scripts"`
+	Require map[string]string `json:"require"`
+}
+
+var phpVersionRE = regexp.MustCompile(`\d+(?:\.\d+)*`)
+
+// phpVersion reads the PHP version from composer.json's require constraint and
+// falls back to 8.3 when the file says nothing useful.
+func phpVersion(c composerFile) string {
+	if m := phpVersionRE.FindString(c.Require["php"]); m != "" {
+		return m
+	}
+	return "8.3"
+}
 
 func (p *Planner) ci(ctx context.Context, rr checks.RepoReport, patch *Patch) (bool, error) {
 	r, st := rr.Repo, rr.Stack
@@ -295,6 +311,18 @@ func (p *Planner) ci(ctx context.Context, rr checks.RepoReport, patch *Patch) (b
 		}
 	case "gradle":
 		data["Gradlew"] = r.Has(in("gradlew"))
+	case "php":
+		var composer composerFile
+		raw, err := p.fileContent(ctx, r, in("composer.json"))
+		if err != nil {
+			return false, err
+		}
+		if err := json.Unmarshal([]byte(raw), &composer); err != nil {
+			patch.Skipped = append(patch.Skipped, "ci: composer.json is not valid JSON")
+			return false, nil
+		}
+		data["Test"] = composer.Scripts["test"] != ""
+		data["PHPVersion"] = phpVersion(composer)
 	}
 	s, err := templates.Render(name+".yml", data)
 	if err != nil {
