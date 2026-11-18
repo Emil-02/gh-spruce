@@ -10,6 +10,8 @@
 
 **🌐 Try it in the browser, no install needed: [gh-spruce.vercel.app](https://gh-spruce.vercel.app)**
 
+> **Using an AI coding agent?** Install [`jaga-skill`](https://github.com/Emil-02/jaga-skill) with `npx jaga-skill init` — a gate that stops the agent before commit/deploy when secrets or personal data are detected. `gh-spruce` is part of the repo-health checks behind it.
+
 🇮🇩 [Baca dalam Bahasa Indonesia](README.id.md)
 
 <p align="center">
