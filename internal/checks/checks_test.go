@@ -122,11 +122,20 @@ func TestConfigDisableAndWeights(t *testing.T) {
 }
 
 func TestBoilerplateReadme(t *testing.T) {
-	r := healthy()
-	r.Readme = "This is a [Next.js](https://nextjs.org) project bootstrapped with create-next-app."
-	rr := Evaluate(r, config.Default(), now)
-	if status(rr, "readme") != Fail {
-		t.Errorf("readme = %s", status(rr, "readme"))
+	cases := []string{
+		"This is a [Next.js](https://nextjs.org) project bootstrapped with create-next-app.",
+		"This is an Expo project created with create-expo-app.",
+		"This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 17.0.0.",
+		"## Project setup\n\n```\nnpm install\n```\n\n### Compiles and hot-reloads for development",
+		"Laravel is a web application framework with expressive, elegant syntax.",
+	}
+	for _, c := range cases {
+		r := healthy()
+		r.Readme = c
+		rr := Evaluate(r, config.Default(), now)
+		if status(rr, "readme") != Fail {
+			t.Errorf("readme for %q = %s, want Fail", c, status(rr, "readme"))
+		}
 	}
 }
 
